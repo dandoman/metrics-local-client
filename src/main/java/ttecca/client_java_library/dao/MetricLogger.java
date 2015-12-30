@@ -12,18 +12,26 @@ import lombok.extern.log4j.Log4j;
 
 @Log4j
 @AllArgsConstructor
-public class MetricWriter {
+public class MetricLogger {
 	private final String applicationName;
 	private final String hostName;
 	private final String marketPlace;
 	
 	private final ObjectMapper mapper = new ObjectMapper();
 	
+	//This could also be specified by the constructor
+	//If we want a user specified log output
+	static {
+		//This line is required in order to set the service_log output folder
+		//TODO Should add tmp folder checking here
+		System.setProperty("logfile.name", "/tmp/service_log");
+	}
+	
 	public void writeMetric(String operationName, String metricName, double metricValue) {
-		StagedMetric metric = new StagedMetric(applicationName,operationName,marketPlace,hostName,DateTime.now().getMillis(),metricName,metricValue);
+		long currentTime = DateTime.now().getMillis();
+		StagedMetric metric = new StagedMetric(applicationName,operationName,marketPlace,hostName,currentTime,metricName,metricValue);
 		try {
 			String jsonString = mapper.writeValueAsString(metric);
-			System.out.println(jsonString);
 			log.info(jsonString);
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
