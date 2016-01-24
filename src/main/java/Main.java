@@ -6,8 +6,7 @@ import ttecca.client_java_library.dao.MetricLogger;
 public class Main {
 
 	public static void main(String[] args) throws InterruptedException {
-		//TODO this needs to be set here and cannot be set in java code due to permissions
-		//TODO try this on linux system, windows might just be mucking it up
+		//TODO This should be set through cmd line with daemon
 		System.setProperty("ttecca.logfile.name", "/tmp/service/service_log");
 		
 		//Need to call this before using to instantiate
@@ -16,7 +15,7 @@ public class Main {
 		long startTime = System.currentTimeMillis();
 		while((startTime - System.currentTimeMillis())<310*1000) {
 			double random = Math.random() * 1000;
-			MetricLogger.writeMetric("op_test", "nicishard", random);
+			MetricLogger.writeMetric("op_test", "day", random);
 			Thread.sleep(10000);
 		}
 		File d = new File("/tmp");
