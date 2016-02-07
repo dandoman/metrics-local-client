@@ -53,7 +53,7 @@ public class MetricLogger {
 	private void createAppender(String logFilePath) {
 		DailyRollingFileAppender appender = new DailyRollingFileAppender();
 	    appender.setName("metricsAppender");
-	    appender.setDatePattern("'.'yyyy-MM-dd-HH");
+	    appender.setDatePattern("'.'yyyy-MM-dd-HH-mm");
 	    appender.setLayout(new PatternLayout("%m%n"));
 	    appender.setFile(logFilePath + "/service_log");
 	    appender.setAppend(true);
