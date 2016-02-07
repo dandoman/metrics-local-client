@@ -1,5 +1,11 @@
 package ttecca.client_java_library.dao;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import org.apache.log4j.DailyRollingFileAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.joda.time.DateTime;
 
 import ttecca.client_java_library.pojo.StagedMetric;
@@ -7,47 +13,54 @@ import ttecca.client_java_library.pojo.StagedMetric;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.extern.log4j.Log4j;
+import lombok.Setter;
 
-@Log4j
+@Setter
 public class MetricLogger {
-	//Singleton metric logger
-	private static MetricLoggerInit logger;
-	
-	//TODO could check this property when running things from cmd line
-	//http://stackoverflow.com/questions/1324053/configure-log4j-to-log-to-custom-file-at-runtime
-	@AllArgsConstructor
-	@Getter
-	private static class MetricLoggerInit {
-		private final String logDirectory;
-		private final String applicationName;
-		private final String hostName;
-		private final String marketPlace;
-	}
-	
-	private final static ObjectMapper mapper = new ObjectMapper();
-	
-	public static void build(String logDirectory, String applicationName, String hostName, String marketPlace) {
-		if(logger == null) {
-			logger = new MetricLoggerInit(logDirectory,applicationName,hostName,marketPlace);
+	private String applicationName;
+	private String hostName;
+	private String marketPlace;
+	private final Logger logger = Logger.getLogger(this.getClass());
+
+	private final ObjectMapper mapper = new ObjectMapper();
+
+	public MetricLogger(String applicationName, String marketPlace, String logFilePath) {
+		this.applicationName = applicationName;
+		this.marketPlace = marketPlace;
+		try {
+			this.hostName = InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {
+			this.hostName = "UNKNOWN";
 		}
+		createAppender(logFilePath);
 	}
 
-	public static void writeMetric(String operationName, String metricName, double metricValue) {
-		if(logger == null) {
-			throw new IllegalAccessError("Need to initialize/build MetricLogger before writing metrics");
-		}
+	public void writeMetric(String operationName, String metricName,
+			double metricValue) {
+
 		long currentTime = DateTime.now().getMillis();
-		StagedMetric metric = new StagedMetric(logger.getApplicationName(),
-					operationName,logger.getMarketPlace(),logger.getHostName(),
-					currentTime,metricName,metricValue);
+		StagedMetric metric = new StagedMetric(applicationName, operationName,
+				marketPlace, hostName, currentTime, metricName, metricValue);
 		try {
 			String jsonString = mapper.writeValueAsString(metric);
-			log.info(jsonString);
+			logger.info(jsonString);
+			
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 		}
 	}
+	
+	private void createAppender(String logFilePath) {
+		DailyRollingFileAppender appender = new DailyRollingFileAppender();
+	    appender.setName("metricsAppender");
+	    appender.setDatePattern("'.'yyyy-MM-dd-HH-mm");
+	    appender.setLayout(new PatternLayout("%m%n"));
+	    appender.setFile(logFilePath + "/service_log");
+	    appender.setAppend(true);
+	    appender.setThreshold(Level.INFO);
+	    appender.activateOptions();
+	    logger.addAppender(appender);
+	    logger.setAdditivity(false);
+	}
+
 }
