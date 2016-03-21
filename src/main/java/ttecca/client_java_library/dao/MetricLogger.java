@@ -24,7 +24,7 @@ public class MetricLogger {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	public MetricLogger(String applicationName, String marketPlace, String logFilePath) {
+	public MetricLogger(String applicationName, String marketPlace) {
 		this.applicationName = applicationName;
 		this.marketPlace = marketPlace;
 		try {
@@ -32,7 +32,7 @@ public class MetricLogger {
 		} catch (UnknownHostException e) {
 			this.hostName = "UNKNOWN";
 		}
-		createAppender(logFilePath);
+		createAppender();
 	}
 
 	public void writeMetric(String operationName, String metricName,
@@ -50,12 +50,12 @@ public class MetricLogger {
 		}
 	}
 	
-	private void createAppender(String logFilePath) {
+	private void createAppender() {
 		DailyRollingFileAppender appender = new DailyRollingFileAppender();
 	    appender.setName("metricsAppender");
 	    appender.setDatePattern("'.'yyyy-MM-dd-HH-mm");
 	    appender.setLayout(new PatternLayout("%m%n"));
-	    appender.setFile("var/metrics/service_log");
+	    appender.setFile("/var/metrics/service_log");
 	    appender.setAppend(true);
 	    appender.setThreshold(Level.INFO);
 	    appender.activateOptions();
